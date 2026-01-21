@@ -1,0 +1,168 @@
+/* Container */
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Sections */
+.settings-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin-bottom: 25px;
+  border: 1px solid #e2e8f0;
+}
+
+.settings-header {
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fcfcfc;
+}
+
+.settings-header h3 {
+  margin: 0;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+}
+
+.settings-body {
+  padding: 1.5rem;
+}
+
+/* Item Row - FIXED ALIGNMENT */
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Center Vertically */
+  padding: 15px 0;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 15px; /* Ensure space between text and switch */
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-info {
+  flex: 1; /* Allow text to take up space but wrap */
+  min-width: 0; /* Important for flex child wrapping */
+}
+
+.setting-info h4 {
+  margin: 0 0 5px 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.setting-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.4;
+  word-break: break-word; /* Prevent long email overflow */
+}
+
+/* Toggle Switch UI - Prevents Squishing */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  flex-shrink: 0; /* FIX: Prevents switch from disappearing on mobile */
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* Danger Zone */
+.danger-zone {
+  border-color: #fecaca;
+  margin-bottom: 100px;
+}
+
+.danger-zone .settings-header {
+  background: #fef2f2;
+  border-bottom-color: #fecaca;
+  color: #991b1b;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap; /* Keep button text on one line */
+  font-size: 0.9rem;
+}
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* Mobile Tweaks */
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 15px !important;
+  }
+  
+  .settings-header {
+    padding: 1rem;
+  }
+
+  .settings-body {
+    padding: 1rem;
+  }
+
+  /* Make sure danger zone items stack properly */
+  .danger-zone .setting-item {
+    align-items: flex-start; /* Align to top if wrapping */
+    flex-direction: column; /* Stack Text and Button vertically on very small screens */
+    gap: 10px;
+  }
+  
+  .danger-zone .btn-danger {
+    width: 100%; /* Full width button */
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}

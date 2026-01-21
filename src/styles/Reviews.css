@@ -1,0 +1,161 @@
+.reviews-section {
+  margin-top: 2rem; /* Reduced margin */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Lighter shadow */
+  padding: 1.5rem; /* Reduced from 2rem */
+  border: 1px solid #e5e7eb;
+}
+
+.reviews-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.average-score {
+  font-size: 2.5rem; /* Slightly smaller */
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.stars-display {
+  color: #f59e0b;
+  font-size: 1rem; /* Smaller stars */
+}
+
+/* Review Form */
+.review-form {
+  background: #f8fafc;
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #cbd5e1;
+}
+
+/* Review Item - Compact Version */
+.review-item {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem 0; /* Reduced padding */
+  position: relative;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+.review-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.review-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: #e0e7ff;
+  color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.review-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.review-stars {
+  display: flex; 
+  gap: 2px;
+  color: #f59e0b;
+  font-size: 0.8rem; 
+  margin-left: 42px; /* Align under name */
+  margin-bottom: 5px;
+}
+
+.review-text {
+  color: #4b5563;
+  line-height: 1.5;
+  font-size: 0.9rem;
+  margin-left: 42px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* User Controls (Edit/Delete) */
+.user-actions {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 5px;
+  color: #6b7280;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.btn-edit:hover { color: #3b82f6; }
+.btn-delete:hover { color: #ef4444; }
+
+/* Show All Button */
+.show-all-container {
+  text-align: center;
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.btn-link:hover { text-decoration: underline; }
+
+/* Inline Editing Input */
+.edit-input-area {
+  margin-left: 42px;
+  margin-top: 10px;
+}
+.edit-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}

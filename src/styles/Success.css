@@ -1,0 +1,102 @@
+.success-container {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Success Checkmark Animation */
+.checkmark-circle {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  margin-bottom: 2rem;
+}
+
+.checkmark-circle .background {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #10b981;
+  position: absolute;
+  animation: scaleIn 0.5s ease-out;
+}
+
+.checkmark-circle .checkmark {
+  border-radius: 5px;
+}
+
+.checkmark-circle .checkmark.draw:after {
+  animation-delay: 100ms;
+  animation-duration: 1s;
+  animation-timing-function: ease;
+  animation-name: checkmark;
+  transform: scaleX(-1) rotate(135deg);
+}
+
+.checkmark-circle .checkmark:after {
+  opacity: 1;
+  height: 40px;
+  width: 20px;
+  transform-origin: left top;
+  border-right: 4px solid white;
+  border-top: 4px solid white;
+  content: '';
+  left: 14px;
+  top: 40px;
+  position: absolute;
+}
+
+@keyframes scaleIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes checkmark {
+  0% { height: 0; width: 0; opacity: 1; }
+  20% { height: 0; width: 20px; opacity: 1; }
+  40% { height: 40px; width: 20px; opacity: 1; }
+  100% { height: 40px; width: 20px; opacity: 1; }
+}
+
+.success-text h2 {
+  font-size: 2rem;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.success-text p {
+  color: #6b7280;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.order-id-box {
+  background: #f3f4f6;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  display: inline-block;
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: #374151;
+  border: 1px dashed #cbd5e1;
+  margin-bottom: 2rem;
+}
+
+.success-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .success-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}

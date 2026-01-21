@@ -1,0 +1,170 @@
+/* Container for the layout */
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr; /* Desktop Ratio */
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* --- LEFT: ADDRESS & PAYMENT SECTION --- */
+.checkout-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+  border: 1px solid #f3f4f6;
+}
+
+.checkout-header {
+  border-bottom: 2px solid #f9fafb;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.address-grid {
+  display: grid;
+  gap: 15px;
+}
+
+/* Address Card Styling */
+.address-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  background: #fff;
+}
+
+.address-card:hover {
+  border-color: #cbd5e1;
+}
+
+.address-card.selected {
+  border-color: var(--primary-color);
+  background-color: #eef2ff; /* Slight tint when selected */
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
+}
+
+.address-check-icon {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+  display: none;
+}
+
+.address-card.selected .address-check-icon {
+  display: block;
+}
+
+/* --- RIGHT: SUMMARY SIDEBAR --- */
+.checkout-summary {
+  background: #ffffff;
+  padding: 1.8rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  border: 1px solid #e5e7eb;
+  position: sticky;
+  top: 20px;
+}
+
+.item-mini-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 5px;
+}
+
+.item-mini {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px dashed #f1f5f9;
+  padding-bottom: 12px;
+  align-items: flex-start;
+}
+
+/* Pricing Row */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px dashed #cbd5e1;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+/* Coupon Styles */
+.coupon-active {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ecfdf5;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #065f46;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid #d1fae5;
+}
+
+.coupon-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- RESPONSIVE FIX (Raised Breakpoint) --- */
+@media (max-width: 1000px) {
+  /* 
+     Trigger mobile layout on Tablets & Phones (iPad Mini, Vertical Screens, etc).
+     This forces the side-by-side columns to stack vertically sooner. 
+  */
+  .checkout-container {
+    grid-template-columns: 1fr; /* Stack into single column */
+    gap: 1.5rem;
+    max-width: 600px; /* Limit width on mobile so it looks neat */
+  }
+
+  .checkout-summary {
+    position: static; /* Remove sticky */
+    order: 2; /* Put Summary at the bottom? Or 1 for Top. Usually bottom is better here */
+    margin-top: 20px;
+    padding: 1.5rem;
+  }
+  
+  .address-card {
+    padding: 12px;
+  }
+  
+  /* Make sure inputs/buttons don't overflow */
+  .coupon-input-group {
+    flex-wrap: wrap; /* Allow wrapping if very narrow */
+  }
+  .coupon-input-group input {
+    flex: 1 1 100%;
+    margin-bottom: 5px;
+  }
+  .coupon-input-group button {
+    flex: 1 1 100%;
+  }
+}

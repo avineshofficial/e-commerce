@@ -1,0 +1,109 @@
+.legal-container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: white;
+  min-height: 60vh;
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+}
+
+/* Sidebar for policies */
+.legal-sidebar {
+  background: #f8fafc;
+  width: 250px;
+  border-right: 1px solid #e2e8f0;
+  padding: 30px 0;
+  flex-shrink: 0;
+}
+
+.legal-tab {
+  display: block;
+  width: 100%;
+  padding: 15px 25px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 500;
+  border-left: 4px solid transparent;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.legal-tab:hover {
+  background: #f1f5f9;
+  color: var(--primary-color);
+}
+
+.legal-tab.active {
+  background: white;
+  color: var(--primary-color);
+  border-left-color: var(--primary-color);
+  font-weight: 700;
+  box-shadow: -5px 0 10px rgba(0,0,0,0.02);
+}
+
+/* Content Area */
+.legal-content {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.legal-content h1 {
+  margin-top: 0;
+  color: var(--text-main);
+  font-size: 1.8rem;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+}
+
+.legal-content h3 {
+  color: var(--text-main);
+  margin-top: 25px;
+  margin-bottom: 10px;
+}
+
+.legal-content p, .legal-content li {
+  line-height: 1.7;
+  color: var(--text-light);
+  margin-bottom: 15px;
+}
+
+.legal-content ul {
+  padding-left: 20px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .legal-container {
+    flex-direction: column;
+    margin: 20px;
+  }
+  .legal-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 0;
+    display: flex;
+    overflow-x: auto;
+  }
+  .legal-tab {
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 4px solid transparent;
+    padding: 15px;
+    width: auto;
+  }
+  .legal-tab.active {
+    border-left: none;
+    border-bottom-color: var(--primary-color);
+  }
+  .legal-content {
+    padding: 20px;
+  }
+}

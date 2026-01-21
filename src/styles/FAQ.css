@@ -1,0 +1,118 @@
+.help-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.help-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.help-header h1 {
+  font-size: 2.5rem;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.help-header p {
+  color: #64748b;
+  font-size: 1.1rem;
+}
+
+/* Category Filter Buttons */
+.help-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.help-tab {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 10px 25px;
+  border-radius: 50px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.help-tab:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.help-tab.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Accordion */
+.accordion-item {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  transition: box-shadow 0.3s;
+}
+
+.accordion-item:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.accordion-header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #1f2937;
+  user-select: none;
+}
+
+.accordion-header span {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.arrow-icon {
+  transition: transform 0.3s ease;
+  color: var(--primary-color);
+  font-size: 0.9rem;
+}
+
+.arrow-icon.open {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease;
+  background: #f8fafc;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.accordion-body.open {
+  max-height: 200px; /* Adjust based on content */
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.help-footer {
+  text-align: center;
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 1px dashed #e2e8f0;
+  color: #9ca3af;
+}

@@ -1,0 +1,127 @@
+.offers-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.offers-header {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%);
+  color: white;
+  border-radius: 20px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+}
+
+.offers-header h1 {
+  font-size: 2.5rem;
+  margin: 0 0 10px 0;
+}
+
+.offers-header p {
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.coupon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+/* Coupon Ticket Style */
+.coupon-card {
+  background: white;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.coupon-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.coupon-left {
+  background: #f0fdf4;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px dashed #bbf7d0;
+  position: relative;
+}
+
+/* The semi-circles for ticket effect */
+.coupon-left::before, .coupon-left::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  width: 20px;
+  height: 20px;
+  background: var(--bg-body);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.coupon-left::before { left: -10px; }
+.coupon-left::after { right: -10px; }
+
+.discount-val {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #16a34a;
+  line-height: 1;
+}
+
+.discount-label {
+  font-size: 1rem;
+  color: #15803d;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.coupon-right {
+  padding: 20px;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.coupon-desc {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.code-box {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: #334155;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.code-box:hover {
+  background: #f1f5f9;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.copy-hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 5px;
+}

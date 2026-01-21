@@ -1,0 +1,180 @@
+.invoice-container {
+  max-width: 800px;
+  margin: 30px auto;
+  background: white;
+  padding: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  color: #374151;
+}
+
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #f3f4f6;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.invoice-brand h2 {
+  color: var(--primary-color);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.invoice-status {
+  text-align: right;
+}
+
+.invoice-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.meta-group h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.meta-group p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  margin: 30px 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #e5e7eb;
+  z-index: 0;
+}
+
+.timeline-step {
+  position: relative;
+  z-index: 1;
+  background: white;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #9ca3af;
+}
+
+.timeline-step.active {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.step-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  margin-bottom: 8px;
+}
+
+.active .step-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 4px #d1fae5;
+}
+
+/* Invoice Table */
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+
+.invoice-table th {
+  background: #f8fafc;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.invoice-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.95rem;
+}
+
+.print-btn {
+  display: block;
+  width: 200px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+/* ... keep all existing styles above ... */
+
+/* UPDATED PRINT MEDIA QUERY - Black & White Support */
+@media print {
+  /* Hide navigation, buttons, and sidebars */
+  header, footer, .print-btn, .back-btn, .sidebar, .admin-sidebar, .btn, button {
+    display: none !important;
+  }
+  
+  /* Reset container to fit paper */
+  .invoice-container, #printable-area {
+    box-shadow: none;
+    border: none;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  /* FORCE BLACK AND WHITE */
+  body, .invoice-container {
+    background: white;
+    filter: grayscale(100%); /* Converts all colors to gray scale */
+    color: #000 !important;   /* Forces text to pure black for contrast */
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* High Contrast Corrections for B&W */
+  .step-dot, .active .step-dot {
+    background: #000 !important;
+    box-shadow: none !important;
+  }
+  
+  .timeline::before {
+    background: #000 !important;
+  }
+  
+  /* Ensure Table Headers are legible in B&W */
+  .invoice-table th {
+    background-color: #eee !important;
+    color: #000 !important;
+    border-bottom: 1px solid #000;
+  }
+  
+  /* Ensure status text is black */
+  .invoice-status h3 {
+    color: #000 !important;
+  }
+
+  /* Hide scrollbars */
+  body { overflow: visible !important; }
+}

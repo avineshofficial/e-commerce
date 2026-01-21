@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* THEME VARIABLES */
+  --primary-color: #4f46e5; 
+  --primary-hover: #4338ca;
+  --secondary-color: #1e1b4b;
+  
+  --text-main: #111827;
+  --text-light: #6b7280;
+  
+  --bg-body: #f9fafb;
+  --bg-surface: #ffffff;
+  
+  --radius: 12px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; padding: 0; margin: 0; }
+
+/* --- GLOBAL BUTTONS --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn.secondary {
+  background-color: transparent;
+  border: 1px solid #e2e8f0;
+  color: var(--text-light);
+}
+
+.btn.secondary:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: var(--text-main);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* --- FORM INPUTS --- */
+input, select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+  background: #fff;
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* --- CONTAINER LAYOUTS --- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ... keep top variables/body styles ... */
+
+/* --- GRID LAYOUT FIX --- */
+.grid, .product-grid {
+  display: grid;
+  /* Change 'auto-fit' to 'auto-fill'. 
+     This prevents a single card from stretching 100% wide. 
+     It will now stay at ~280px size even if alone. */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  width: 100%;
+  padding-bottom: 40px;
+}
+
+/* Add a safety constraint for very wide screens */
+.product-card {
+  max-width: 400px; /* Prevents card from ever getting huge */
+  width: 100%;
+  margin: 0 auto;   /* Centers it if it's the only one in a flex container */
+}
+
+/* --- MOBILE OPTIMIZATIONS (Keep your mobile layout) --- */
+@media (max-width: 600px) {
+  .container { padding: 15px; }
+
+  /* On mobile, allow them to stretch to fill the 2 columns */
+  .grid, .product-grid {
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px;
+  }
+  
+  .product-card {
+    max-width: none; /* Reset restriction on mobile so it fits the column */
+  }
+}
+
+/* ... keep loader styles ... */
+  /* Adjust Card styling for smaller screens */
+  .product-card .imageContainer {
+    height: 160px !important; /* Smaller images on phone */
+  }
+  
+  .product-card h3 {
+    font-size: 0.95rem !important; /* Prevent text overflow */
+  }
+  
+  .product-card .details-price {
+    font-size: 1.1rem !important;
+  }
+  
+  .product-card .btn {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+
+/* Tiny Screens (older phones) fallback to 1 column */
+@media (max-width: 340px) {
+  .grid, .product-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,181 @@
+.track-container {
+  max-width: 600px;
+  margin: 60px auto;
+  min-height: 50vh;
+}
+
+.track-card {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.track-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.track-header h1 {
+  font-size: 2rem;
+  margin: 0 0 10px 0;
+  color: var(--primary-color);
+}
+
+.track-header p {
+  color: #6b7280;
+  margin: 0;
+}
+
+.track-input-group {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.track-input {
+  width: 100%;
+  padding: 15px 20px;
+  padding-left: 50px; /* Space for icon */
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.track-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+}
+
+.input-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 1.2rem;
+}
+
+/* Result Section */
+.track-result {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px dashed #cbd5e1;
+  animation: fadeIn 0.5s ease;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.status-badge-lg {
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.status-pending { background: #fff7ed; color: #d97706; }
+.status-shipped { background: #eff6ff; color: #2563eb; }
+.status-delivered { background: #ecfdf5; color: #059669; }
+
+.track-progress {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin: 40px 0;
+}
+
+.track-progress::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #f1f5f9;
+  z-index: 0;
+}
+
+/* Dynamic progress bar fill */
+.track-bar-fill {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  height: 4px;
+  background: #10b981;
+  z-index: 1;
+  transition: width 1s ease;
+}
+
+.progress-step {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 33.33%;
+}
+
+.step-circle {
+  width: 35px;
+  height: 35px;
+  background: white;
+  border: 4px solid #f1f5f9;
+  border-radius: 50%;
+  margin: 0 auto 10px auto;
+  transition: all 0.5s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-step.completed .step-circle {
+  border-color: #10b981;
+  background: #10b981;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.progress-step.completed .step-label {
+  color: #334155;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ... (Existing styles) ... */
+
+/* Status Badges */
+.status-pending { background: #fff7ed; color: #d97706; }
+.status-shipped { background: #eff6ff; color: #2563eb; }
+.status-delivered { background: #ecfdf5; color: #059669; }
+.status-cancelled { background: #fee2e2; color: #ef4444; } /* RED Badge */
+
+/* Cancelled Progress Styles */
+.track-bar-fill.cancelled-bar {
+  background: #ef4444 !important; /* Red Line */
+  width: 100% !important; /* Full line to show it's done/stopped */
+}
+
+.progress-step.cancelled-step .step-circle {
+  border-color: #ef4444;
+  background: #ef4444;
+  color: white;
+}
+
+.progress-step.cancelled-step .step-label {
+  color: #ef4444;
+  font-weight: 700;
+}
