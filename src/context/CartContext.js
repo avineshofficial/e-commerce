@@ -5,56 +5,64 @@ const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  // Config
   const FREE_SHIPPING_THRESHOLD = 499;
   const SHIPPING_CHARGE = 40;
 
-  // FIX: Lazy Initialization
-  // We read from localStorage IMMEDIATELY when the app starts.
-  // This prevents the empty [] state from overwriting your saved data.
   const [cartItems, setCartItems] = useState(() => {
     try {
       const savedCart = localStorage.getItem('nk_cart');
       return savedCart ? JSON.parse(savedCart) : [];
-    } catch (error) {
-      console.error("Error loading cart:", error);
-      return [];
-    }
+    } catch (error) { return []; }
   });
 
-  // Save to LocalStorage whenever cart changes
   useEffect(() => {
     localStorage.setItem('nk_cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
   const addToCart = (product) => {
     setCartItems(prev => {
-      // Logic for variants: check IDs match
       const existing = prev.find(item => item.id === product.id);
+      
+      // Get the correct stock limit from the product object
+      const stockLimit = product.stock !== undefined ? product.stock : (product.stock_quantity || 100);
+
       if (existing) {
-        if(existing.quantity >= (product.stock || 99)) return prev; 
+        if(existing.quantity >= stockLimit) {
+            // Optional: alert or toast here via a callback if needed
+            return prev; 
+        }
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, stock: stockLimit }];
     });
   };
 
   const removeFromCart = (id) => setCartItems(prev => prev.filter(item => item.id !== id));
 
+  // --- FIX: CHECK STOCK LIMIT HERE ---
   const updateQuantity = (id, newQty) => {
     if (newQty < 1) return;
-    setCartItems(prev => prev.map(item => item.id === id ? { ...item, quantity: newQty } : item));
+
+    setCartItems(prev => prev.map(item => {
+        if (item.id === id) {
+            // Use stored stock value, default high if missing
+            const limit = item.stock !== undefined ? item.stock : (item.stock_quantity || 100);
+            
+            // Prevent increasing beyond stock
+            if (newQty > limit) {
+                // Just return the item as is (no change)
+                return item; 
+            }
+            return { ...item, quantity: newQty };
+        }
+        return item;
+    }));
   };
 
   const clearCart = () => setCartItems([]);
 
-  // --- CALCULATIONS ---
   const cartSubtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  
-  // Shipping logic
   const shippingCost = (cartSubtotal >= FREE_SHIPPING_THRESHOLD || cartSubtotal === 0) ? 0 : SHIPPING_CHARGE;
-
-  // Grand Total
   const totalAmount = cartSubtotal + shippingCost;
 
   const value = {

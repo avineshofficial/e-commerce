@@ -73,14 +73,34 @@ const Cart = () => {
                 {/* 2. Quantity */}
                 <div className="cart-item-actions">
                   <div className="qty-control">
-                    <button onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                    <button 
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)} 
+                        disabled={item.quantity <= 1}
+                    >
                       <FaMinus size={10} />
                     </button>
+                    
                     <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                    
+                    {/* --- FIX: DISABLE BUTTON IF STOCK REACHED --- */}
+                    <button 
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        disabled={item.quantity >= (item.stock || item.stock_quantity)}
+                        style={{ 
+                            opacity: item.quantity >= (item.stock || item.stock_quantity) ? 0.3 : 1,
+                            cursor: item.quantity >= (item.stock || item.stock_quantity) ? 'not-allowed' : 'pointer'
+                        }}
+                    >
                       <FaPlus size={10} />
                     </button>
+
                   </div>
+                  {/* Show "Max Reached" text for clarity */}
+                  {item.quantity >= (item.stock || item.stock_quantity) && (
+                      <div style={{fontSize:'0.65rem', color:'#ef4444', marginTop:'5px', fontWeight:'600'}}>
+                        Max limit reached
+                      </div>
+                  )}
                 </div>
 
                 {/* 3. Total */}

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../../config/firebase';
+import { db, storage } from '../../config/firebase'; // Added Storage
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
-import { FaEdit, FaSave, FaArrowLeft, FaTrash, FaPlus } from 'react-icons/fa';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Storage methods
+import { FaEdit, FaSave, FaArrowLeft, FaTrash, FaPlus, FaCloudUploadAlt, FaSpinner, FaTimes } from 'react-icons/fa';
 import { useToast } from '../../context/ToastContext';
 import '../../styles/Form.css';
 
@@ -15,28 +16,33 @@ const EditProduct = () => {
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState([]);
 
-  // Basic Info
+  // Product Data
   const [product, setProduct] = useState({
     name: '',
     category: '',
     description: '',
-    image_url: '',
     featured: false
   });
 
-  // Variants State
+  // Variant Data
   const [variants, setVariants] = useState([]);
 
-  // 1. Fetch Data (Product + Categories)
+  // --- IMAGE STATE ---
+  // 1. URLs that are already saved in Database
+  const [existingImages, setExistingImages] = useState([]); 
+  // 2. New Files selected from computer (Files)
+  const [newImageFiles, setNewImageFiles] = useState([]);
+  // 3. Previews for new files (Blob URLs)
+  const [newPreviews, setNewPreviews] = useState([]);
+
+  // 1. Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch Categories
         const catSnap = await getDocs(collection(db, "categories"));
         const catList = catSnap.docs.map(d => d.data());
         if (catList.length > 0) setCategories(catList);
 
-        // Fetch Product
         const docRef = doc(db, "products_collection", id);
         const snapshot = await getDoc(docRef);
         
@@ -46,29 +52,30 @@ const EditProduct = () => {
             name: data.name || '',
             category: data.category || '',
             description: data.description || '',
-            image_url: data.image_url || '',
             featured: data.featured || false
           });
 
-          // Handle Variants (Legacy support)
+          // Handle Variants
           if (data.variants && data.variants.length > 0) {
             setVariants(data.variants);
           } else {
-            // Convert old single-unit product to variant structure for editing
-            setVariants([{
-    unit: 'Standard',
-    price: data.price || 0,
-    discount: data.discount || 0, // ensure we capture this if legacy updated
-    stock: data.stock_quantity || 0
-  }]);
+            setVariants([{ unit: 'Standard', price: data.price || 0, discount: data.discount || 0, stock: data.stock_quantity || 0 }]);
           }
+
+          // Handle Images
+          // Prefer 'images' array, fallback to 'image_url' string
+          if (data.images && Array.isArray(data.images)) {
+             setExistingImages(data.images);
+          } else if (data.image_url) {
+             setExistingImages([data.image_url]);
+          }
+
         } else {
           toast.error("Product not found!");
           navigate('/admin/inventory');
         }
       } catch (error) {
         console.error(error);
-        toast.error("Error loading data");
       } finally {
         setLoading(false);
       }
@@ -76,14 +83,35 @@ const EditProduct = () => {
     fetchData();
   }, [id, navigate, toast]);
 
-  // --- HANDLERS ---
+  // --- IMAGE HANDLERS ---
+  
+  // Select Files from Computer
+  const handleFileSelect = (e) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      const filePreviews = files.map(file => URL.createObjectURL(file));
+
+      setNewImageFiles(prev => [...prev, ...files]);
+      setNewPreviews(prev => [...prev, ...filePreviews]);
+    }
+  };
+
+  // Remove Newly Selected File
+  const removeNewFile = (index) => {
+     setNewImageFiles(prev => prev.filter((_, i) => i !== index));
+     setNewPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove Existing DB Image
+  const removeExistingImage = (index) => {
+     setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // --- FORM HANDLERS ---
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setProduct(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setProduct(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleVariantChange = (index, field, value) => {
@@ -92,76 +120,79 @@ const EditProduct = () => {
     setVariants(updated);
   };
 
-  const addVariant = () => {
-    setVariants([...variants, { unit: '', price: '', stock: '' }]);
-  };
+  const addVariant = () => setVariants([...variants, { unit: '', price: '', discount: 0, stock: '' }]);
 
   const removeVariant = (index) => {
-    if (variants.length > 1) {
-      setVariants(variants.filter((_, i) => i !== index));
-    } else {
-      toast.warning("Cannot remove the last option. A product must have at least one price.");
-    }
+    if (variants.length > 1) setVariants(variants.filter((_, i) => i !== index));
+    else toast.warning("Product must have at least one size.");
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    setSaving(true);
+    if (!product.name) return toast.error("Name is required");
 
+    setSaving(true);
     try {
-        // Validation
-        const isValid = variants.every(v => v.unit && v.price !== '' && v.stock !== '');
-        if (!isValid || !product.name) {
-            toast.error("Please fill all required fields");
-            setSaving(false);
-            return;
+        // 1. Upload NEW Images (if any)
+        let uploadedUrls = [];
+        if (newImageFiles.length > 0) {
+            uploadedUrls = await Promise.all(
+                newImageFiles.map(async (file) => {
+                    const storageRef = ref(storage, `products/${id}_${Date.now()}_${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    return await getDownloadURL(storageRef);
+                })
+            );
         }
 
-        // Logic: Main price display is the lowest variant price
-        const prices = variants.map(v => Number(v.price));
-        const minPrice = Math.min(...prices);
-        
-        // Logic: Total Stock is sum of all variants
-        const totalStock = variants.reduce((sum, v) => sum + Number(v.stock), 0);
+        // 2. Merge Existing + New Images
+        const finalImages = [...existingImages, ...uploadedUrls];
+        const mainImage = finalImages.length > 0 ? finalImages[0] : '';
 
-        // Sanitize variants data
+        // 3. Process Variants
         const finalVariants = variants.map(v => ({
-      unit: v.unit,
-      price: Number(v.price),
-      discount: Number(v.discount || 0), // Save Discount
-      stock: Number(v.stock)
-  }));
+            unit: v.unit,
+            price: Number(v.price),
+            discount: Number(v.discount || 0),
+            stock: Number(v.stock)
+        }));
 
+        // Calculate aggregates
+        const prices = finalVariants.map(v => Number(v.price) - (Number(v.price)*Number(v.discount||0)/100));
+        const minPrice = Math.min(...prices);
+        const totalStock = finalVariants.reduce((sum, v) => sum + Number(v.stock), 0);
+
+        // 4. Update Firestore
         const docRef = doc(db, "products_collection", id);
-        
         await updateDoc(docRef, {
             ...product,
+            images: finalImages,
+            image_url: mainImage, // Main thumbnail
             variants: finalVariants,
             price: minPrice,         
             stock_quantity: totalStock,
-            // Keep existing stats safe
         });
 
-        toast.success("Product Updated Successfully!");
+        toast.success("Product Saved!");
         navigate('/admin/inventory');
       
     } catch (error) {
-      console.error("Update error:", error);
-      toast.error("Failed to update product.");
+      console.error(error);
+      toast.error("Failed to update.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div style={{padding:'50px', textAlign:'center'}}>Loading Editor...</div>;
+  if (loading) return <div style={{padding:'50px', textAlign:'center'}}>Loading...</div>;
 
   return (
-    <div className="form-container" style={{ maxWidth: '800px' }}>
+    <div className="form-container" style={{ maxWidth: '850px' }}>
       <button 
         onClick={() => navigate('/admin/inventory')}
         style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '10px' }}
       >
-        <FaArrowLeft /> Cancel
+        <FaArrowLeft /> Back
       </button>
 
       <div className="form-header">
@@ -171,114 +202,79 @@ const EditProduct = () => {
 
       <form onSubmit={handleUpdate}>
         
-        {/* --- MAIN INFO --- */}
+        {/* Main Info */}
         <div className="form-group">
           <label>Product Name</label>
-          <input 
-            type="text" name="name" className="form-input" required 
-            value={product.name} onChange={handleChange} 
-          />
+          <input className="form-input" required value={product.name} onChange={handleChange} name="name" />
         </div>
 
         <div className="form-group">
           <label>Category</label>
-          <select 
-            name="category" className="form-select" required 
-            value={product.category} onChange={handleChange}
-          >
-            <option value="">Select Category</option>
-            {categories.length > 0 ? (
-                categories.filter(c => c.isActive !== false).map((cat, i) => (
-                    <option key={i} value={cat.value}>{cat.name}</option>
-                ))
-            ) : (
-                <option value={product.category}>{product.category} (Legacy)</option>
-            )}
+          <select className="form-select" required value={product.category} name="category" onChange={handleChange}>
+            {categories.map((c, i) => <option key={i} value={c.value}>{c.name}</option>)}
           </select>
         </div>
 
-        {/* --- VARIANTS MANAGER --- */}
-        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', margin: '20px 0' }}>
-            <h4 style={{ margin: '0 0 15px 0', color: '#334155' }}>Pricing & Stock Variants</h4>
+        {/* --- IMAGE MANAGER --- */}
+        <div style={{ background: '#fff', border:'1px dashed #cbd5e1', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
+            <h4 style={{ margin:'0 0 10px 0', color: '#334155' }}>Product Images</h4>
             
-            {variants.map((variant, index) => (
-                <div key={index} style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '15px' }}>
-                    <div style={{ flex: 1.5 }}>
-                        <label style={{ fontSize:'0.75rem', marginBottom:'4px' }}>Size/Unit</label>
-                        <input 
-                            className="form-input" 
-                            style={{ margin: 0 }}
-                            value={variant.unit} 
-                            onChange={(e) => handleVariantChange(index, 'unit', e.target.value)}
-                            placeholder="e.g. 1kg"
-                        />
+            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                
+                {/* 1. Existing Images */}
+                {existingImages.map((img, idx) => (
+                    <div key={`exist-${idx}`} style={{ position: 'relative', width:'80px', height:'80px', border:'1px solid #e2e8f0', borderRadius:'6px' }}>
+                        <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'6px' }} />
+                        <button type="button" onClick={() => removeExistingImage(idx)} style={{ position:'absolute', top:'-5px', right:'-5px', background:'red', color:'white', border:'none', borderRadius:'50%', width:'20px', height:'20px', cursor:'pointer', display:'flex', justifyContent:'center', alignItems:'center', fontSize:'10px' }}><FaTimes/></button>
                     </div>
-                    <div style={{ flex: 1 }}>
-                        <label style={{ fontSize:'0.75rem', marginBottom:'4px' }}>Price (₹)</label>
-                        <input 
-                            type="number" className="form-input" style={{ margin: 0 }}
-                            value={variant.price} 
-                            onChange={(e) => handleVariantChange(index, 'price', e.target.value)}
-                        />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <label style={{ fontSize:'0.75rem', marginBottom:'4px' }}>Stock</label>
-                        <input 
-                            type="number" className="form-input" style={{ margin: 0 }}
-                            value={variant.stock} 
-                            onChange={(e) => handleVariantChange(index, 'stock', e.target.value)}
-                        />
-                    </div>
+                ))}
 
-                    <div style={{ flex: 1.5 }}>
-      <label style={{ fontSize:'0.75rem', marginBottom:'4px' }}>Disc %</label>
-      <input 
-          type="number" className="form-input" style={{ margin: 0 }}
-          value={variant.discount || 0} // Default 0 if missing
-          onChange={(e) => handleVariantChange(index, 'discount', e.target.value)}
-      />
-  </div>
-                    <div style={{ paddingBottom:'5px' }}>
-                       {variants.length > 1 && (
-                           <button type="button" onClick={() => removeVariant(index)} style={{ border:'none', background:'#fee2e2', color:'#ef4444', padding:'10px', borderRadius:'4px', cursor:'pointer' }}>
-                               <FaTrash />
-                           </button>
-                       )}
+                {/* 2. New Previews */}
+                {newPreviews.map((img, idx) => (
+                    <div key={`new-${idx}`} style={{ position: 'relative', width:'80px', height:'80px', border:'2px solid #a5b4fc', borderRadius:'6px' }}>
+                        <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'6px' }} />
+                        <button type="button" onClick={() => removeNewFile(idx)} style={{ position:'absolute', top:'-5px', right:'-5px', background:'red', color:'white', border:'none', borderRadius:'50%', width:'20px', height:'20px', cursor:'pointer', display:'flex', justifyContent:'center', alignItems:'center', fontSize:'10px' }}><FaTimes/></button>
+                        <div style={{position:'absolute', bottom:0, width:'100%', background:'rgba(0,0,0,0.5)', color:'white', fontSize:'8px', textAlign:'center'}}>New</div>
                     </div>
-                </div>
-            ))}
+                ))}
 
-            <button type="button" onClick={addVariant} className="btn-outline" style={{ marginTop: '5px', fontSize:'0.85rem' }}>
-                <FaPlus size={10} style={{ marginRight:'6px' }} /> Add Size
-            </button>
+                {/* 3. Upload Button */}
+                <label style={{ 
+                    width:'80px', height:'80px', border:'2px dashed var(--primary-color)', borderRadius:'6px', 
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', 
+                    cursor:'pointer', background:'#eef2ff', color:'var(--primary-color)' 
+                }}>
+                    <FaCloudUploadAlt size={20} />
+                    <span style={{ fontSize:'0.7rem', fontWeight:'bold' }}>Upload</span>
+                    <input type="file" multiple accept="image/*" style={{display:'none'}} onChange={handleFileSelect}/>
+                </label>
+
+            </div>
         </div>
 
-        {/* --- REST --- */}
-        <div className="form-group">
-          <label>Image URL</label>
-          <input 
-            type="text" name="image_url" className="form-input" required 
-            value={product.image_url} onChange={handleChange} 
-          />
-          {product.image_url && (
-            <img src={product.image_url} alt="Preview" style={{ height: '60px', marginTop:'10px', borderRadius:'4px', border:'1px solid #ddd' }} onError={(e)=>e.target.style.display='none'}/>
-          )}
+        {/* Variants Manager (Same as before) */}
+        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0', margin: '20px 0' }}>
+            <h4 style={{ margin: '0 0 15px 0', color: '#334155' }}>Pricing & Stock Variants</h4>
+            {variants.map((v, i) => (
+                <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+                    <input className="form-input" style={{flex:2, margin:0}} placeholder="Size (1kg)" value={v.unit} onChange={e=>handleVariantChange(i, 'unit', e.target.value)} />
+                    <input type="number" className="form-input" style={{flex:1, margin:0}} placeholder="₹ Price" value={v.price} onChange={e=>handleVariantChange(i, 'price', e.target.value)} />
+                    <input type="number" className="form-input" style={{flex:1, margin:0}} placeholder="% Off" value={v.discount} onChange={e=>handleVariantChange(i, 'discount', e.target.value)} />
+                    <input type="number" className="form-input" style={{flex:1, margin:0}} placeholder="Qty" value={v.stock} onChange={e=>handleVariantChange(i, 'stock', e.target.value)} />
+                    {variants.length > 1 && <button type="button" onClick={() => removeVariant(i)} style={{background:'transparent', border:'none', color:'#ef4444', cursor:'pointer'}}><FaTrash/></button>}
+                </div>
+            ))}
+            <button type="button" onClick={addVariant} className="btn-outline" style={{ marginTop:'10px', fontSize:'0.8rem' }}><FaPlus style={{marginRight:'5px'}}/> Add Size</button>
         </div>
 
         <div className="form-group">
           <label>Description</label>
-          <textarea 
-            name="description" className="form-textarea" rows="4" 
-            value={product.description} onChange={handleChange} 
-          />
+          <textarea name="description" className="form-textarea" rows="4" value={product.description} onChange={handleChange} />
         </div>
 
         <label className="checkbox-group">
-          <input 
-            type="checkbox" name="featured" 
-            checked={product.featured} onChange={handleChange} 
-          />
-          <span style={{ fontWeight: 600 }}>Mark as Featured (Home Banner)</span>
+          <input type="checkbox" name="featured" checked={product.featured} onChange={handleChange} />
+          <span style={{ fontWeight: 600 }}>Mark as Featured</span>
         </label>
 
         <button 
@@ -287,7 +283,7 @@ const EditProduct = () => {
           disabled={saving}
           style={{ width: '100%', justifyContent: 'center', fontSize: '1rem', marginTop: '15px' }}
         >
-          {saving ? 'Saving...' : <><FaSave style={{marginRight:'6px'}}/> Save Changes</>}
+          {saving ? <><FaSpinner className="fa-spin" style={{marginRight:'8px'}}/> Saving...</> : <><FaSave style={{marginRight:'8px'}}/> Update Product</>}
         </button>
       </form>
     </div>
