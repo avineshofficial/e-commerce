@@ -50,14 +50,16 @@ import ManageReviews from './pages/admin/ManageReviews';
 import ManageTeam from './pages/admin/ManageTeam';
 import Billing from './pages/admin/Billing';
 import PrintReceipt from './pages/admin/PrintReceipt'; // Import Receipt Page
+import { ProductProvider } from './context/ProductContext';
 
 function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <Router>
+        <ProductProvider> {/* <--- WRAP HERE (Must be inside Auth/outside Cart works too) */}
+          <CartProvider>
+            <WishlistProvider>
+               <Router>
               <ScrollToTop />
               
               <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -115,8 +117,9 @@ function App() {
                 
               </div>
             </Router>
-          </WishlistProvider>
-        </CartProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </ProductProvider> 
       </AuthProvider>
     </ToastProvider>
   );

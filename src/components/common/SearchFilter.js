@@ -1,25 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { db } from '../../config/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import React from 'react';
+import { useProducts } from '../../context/ProductContext'; // <--- IMPORT CONTEXT
 import { FaSearch, FaFilter, FaSortAmountDown } from 'react-icons/fa';
 
 const SearchFilter = ({ onSearch, onCategoryChange, onSortChange, activeCategory, activeSort }) => {
-  const [categories, setCategories] = useState([]);
-
-  // Fetch Categories from Database
-  useEffect(() => {
-    const fetchCats = async () => {
-      try {
-        const snap = await getDocs(collection(db, "categories"));
-        const list = snap.docs.map(doc => doc.data());
-        // Only set if data exists
-        if (list.length > 0) setCategories(list);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-    fetchCats();
-  }, []);
+  // Get Categories directly from Context (No loading, No extra read)
+  const { categories } = useProducts();
 
   return (
     <div className="search-filter-container" style={styles.container}>
@@ -36,7 +21,7 @@ const SearchFilter = ({ onSearch, onCategoryChange, onSortChange, activeCategory
       </div>
 
       <div style={styles.controlsWrapper}>
-        {/* 2. Category Filter - FIXED: No Hardcoded Defaults */}
+        {/* 2. Category Filter (Dynamic from Context) */}
         <div style={styles.selectWrapper}>
           <FaFilter style={styles.icon} />
           <select 
@@ -45,12 +30,16 @@ const SearchFilter = ({ onSearch, onCategoryChange, onSortChange, activeCategory
             style={styles.select}
           >
             <option value="All">All Categories</option>
-            {categories
-                .filter(cat => cat.isActive !== false) // Only show active
+            {categories && categories.length > 0 ? (
+              categories
+                .filter(cat => cat.isActive !== false) // Only active categories
                 .map((cat, index) => (
                   <option key={index} value={cat.value}>{cat.name}</option>
               ))
-            }
+            ) : (
+              // Clean fallback just in case context is initializing
+              <option disabled>Loading Categories...</option>
+            )}
           </select>
         </div>
 
@@ -71,22 +60,29 @@ const SearchFilter = ({ onSearch, onCategoryChange, onSortChange, activeCategory
 
       {/* Internal CSS */}
       <style>{`
-        /* Focus Outline Fixes */
+        /* Input Focus Style Fixes */
         .search-box input:focus { outline: none; box-shadow: none; }
         .search-box:focus-within {
           border-color: var(--primary-color) !important;
           box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
+
         @media (max-width: 768px) {
-          .search-filter-container { flex-direction: column; gap: 15px; }
-          .controlsWrapper { width: 100%; justify-content: space-between; }
+          .search-filter-container {
+            flex-direction: column;
+            gap: 15px;
+          }
+          .controlsWrapper {
+             width: 100%;
+             justify-content: space-between;
+          }
         }
       `}</style>
     </div>
   );
 };
 
-// ... Keep existing styles const object below as is ...
+// Styles Object (Kept consistent with previous design)
 const styles = {
   container: {
     display: 'flex',
@@ -122,9 +118,23 @@ const styles = {
     color: '#334155',
     margin: 0
   },
-  controlsWrapper: { display: 'flex', gap: '15px', flexWrap: 'wrap' },
-  selectWrapper: { position: 'relative', display: 'flex', alignItems: 'center' },
-  icon: { position: 'absolute', left: '12px', color: 'var(--primary-color)', pointerEvents: 'none', zIndex: 1 },
+  controlsWrapper: {
+    display: 'flex',
+    gap: '15px',
+    flexWrap: 'wrap'
+  },
+  selectWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  icon: {
+    position: 'absolute',
+    left: '12px',
+    color: 'var(--primary-color)',
+    pointerEvents: 'none',
+    zIndex: 1
+  },
   select: {
     padding: '10px 10px 10px 38px',
     borderRadius: '8px',
@@ -136,7 +146,8 @@ const styles = {
     color: '#475569',
     fontWeight: '500',
     margin: 0,
-    minWidth: '160px'
+    minWidth: '160px',
+    WebkitAppearance: 'none'
   }
 };
 
