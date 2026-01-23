@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { FaGoogle, FaShieldAlt } from 'react-icons/fa';
+import { FaGoogle } from 'react-icons/fa';
 import '../styles/Form.css';
 
 const Login = () => {

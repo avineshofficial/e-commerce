@@ -7,32 +7,54 @@ const ProductContext = createContext();
 export const useProducts = () => useContext(ProductContext);
 
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Function to actually fetch from Firebase
-  const fetchFromDatabase = async () => {
-    setLoading(true);
+  // 1. INITIALIZE STATE FROM CACHE (For instant page load)
+  const [products, setProducts] = useState(() => {
     try {
-      console.log("🔥 FETCHING DATA FROM FIREBASE (Reads Configured)...");
+      const cached = sessionStorage.getItem('nk_cache_products');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
 
-      // 1. Fetch Products
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('nk_cache_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
+
+  const [loading, setLoading] = useState(!products.length); // Only show spinner if cache is empty
+
+  // 2. FETCH FUNCTION
+  const fetchFromDatabase = async () => {
+    try {
+      // console.log("🔄 Background syncing with Database...");
+
+      // A. Fetch Products
       const prodSnap = await getDocs(collection(db, "products_collection"));
       const prodList = prodSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // 2. Fetch Categories
+      // B. Fetch Categories
       const catSnap = await getDocs(collection(db, "categories"));
       const catList = catSnap.docs.map(doc => doc.data());
 
-      // 3. Update State & Save to Session Cache
-      setProducts(prodList);
-      setCategories(catList);
+      // 3. COMPARE AND UPDATE (Prevents unnecessary re-renders if data matches)
+      // We convert to string to do a quick check if data actually changed
+      const currentProdStr = sessionStorage.getItem('nk_cache_products');
+      const newProdStr = JSON.stringify(prodList);
       
-      // Store in browser memory (clears when tab closes)
-      sessionStorage.setItem('nk_cache_products', JSON.stringify(prodList));
-      sessionStorage.setItem('nk_cache_categories', JSON.stringify(catList));
-      sessionStorage.setItem('nk_cache_time', Date.now().toString());
+      const currentCatStr = sessionStorage.getItem('nk_cache_categories');
+      const newCatStr = JSON.stringify(catList);
+
+      // Only update State/DOM if the data is actually different from cache
+      if (currentProdStr !== newProdStr) {
+        setProducts(prodList);
+        sessionStorage.setItem('nk_cache_products', newProdStr);
+      }
+
+      if (currentCatStr !== newCatStr) {
+        setCategories(catList);
+        sessionStorage.setItem('nk_cache_categories', newCatStr);
+      }
 
     } catch (error) {
       console.error("Data Load Error:", error);
@@ -42,24 +64,15 @@ export const ProductProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // 1. Check if we have data in memory
-    const cachedProds = sessionStorage.getItem('nk_cache_products');
-    const cachedCats = sessionStorage.getItem('nk_cache_categories');
-
-    if (cachedProds && cachedCats) {
-      console.log("⚡ LOADED FROM LOCAL CACHE (No Reads)");
-      setProducts(JSON.parse(cachedProds));
-      setCategories(JSON.parse(cachedCats));
-      setLoading(false);
-    } else {
-      // 2. If no cache, fetch from DB
-      fetchFromDatabase();
-    }
+    // 4. ALWAYS FETCH ON MOUNT
+    // Even if we have cache, we fetch in background to ensure data is fresh (e.g. after a refresh)
+    fetchFromDatabase();
+    
+    // eslint-disable-next-line
   }, []);
 
-  // Use this function in Admin actions to force an update after editing
   const forceRefresh = () => {
-    sessionStorage.removeItem('nk_cache_products');
+    setLoading(true);
     fetchFromDatabase();
   };
 

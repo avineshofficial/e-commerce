@@ -168,21 +168,107 @@ const AddProduct = () => {
         </div>
 
         {/* Pricing Variants */}
-        <div style={{ background: '#f9fafb', padding: '20px', borderRadius: '8px', margin: '20px 0', border: '1px solid #e2e8f0' }}>
-            <h4 style={{ margin: '0 0 15px 0', color: 'var(--primary-color)' }}>Pricing & Sizes</h4>
-            {variants.map((variant, index) => (
-                <div key={index} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
-                    <div style={{flex:2}}><input placeholder="Unit (e.g. 1kg)" className="form-input" required style={{margin:0}} value={variant.unit} onChange={(e) => handleVariantChange(index, 'unit', e.target.value)} /></div>
-                    <div style={{flex:1.5}}><input type="number" placeholder="Price" className="form-input" required style={{margin:0}} value={variant.price} onChange={(e) => handleVariantChange(index, 'price', e.target.value)} /></div>
-                    <div style={{flex:1.5}}><input type="number" placeholder="Disc %" className="form-input" style={{margin:0}} value={variant.discount} onChange={(e) => handleVariantChange(index, 'discount', e.target.value)} /></div>
-                    <div style={{flex:1.5}}><input type="number" placeholder="Qty" className="form-input" required style={{margin:0}} value={variant.stock} onChange={(e) => handleVariantChange(index, 'stock', e.target.value)} /></div>
-                    {variants.length > 1 && (
-                        <button type="button" onClick={() => removeVariant(index)} style={{ border:'none', background:'#fee2e2', color:'#ef4444', padding:'10px', borderRadius:'4px' }}><FaTrash/></button>
-                    )}
-                </div>
-            ))}
-            <button type="button" onClick={addVariant} className="btn-outline" style={{ marginTop: '5px', fontSize:'0.85rem' }}><FaPlus style={{marginRight:'5px'}} /> Add Size</button>
-        </div>
+<div
+  style={{
+    background: '#f9fafb',
+    padding: '20px',
+    borderRadius: '8px',
+    margin: '20px 0',
+    border: '1px solid #e2e8f0'
+  }}
+>
+  <h4 style={{ margin: '0 0 15px 0', color: 'var(--primary-color)' }}>
+    Pricing & Sizes
+  </h4>
+
+  {variants.map((variant, index) => (
+    <div
+      key={index}
+      style={{
+        display: 'flex',
+        gap: '10px',
+        alignItems: 'center',
+        marginBottom: '10px'
+      }}
+    >
+      <div style={{ flex: 2 }}>
+        <input
+          placeholder="Unit (e.g. 1kg)"
+          className="form-input"
+          style={{ margin: 0 }}
+          value={variant.unit}
+          onChange={(e) =>
+            handleVariantChange(index, 'unit', e.target.value)
+          }
+        />
+      </div>
+
+      <div style={{ flex: 1.5 }}>
+        <input
+          type="number"
+          placeholder="Price"
+          className="form-input"
+          style={{ margin: 0 }}
+          value={variant.price}
+          onChange={(e) =>
+            handleVariantChange(index, 'price', e.target.value)
+          }
+        />
+      </div>
+
+      <div style={{ flex: 1.5 }}>
+        <input
+          type="number"
+          placeholder="Disc %"
+          className="form-input"
+          style={{ margin: 0 }}
+          value={variant.discount}
+          onChange={(e) =>
+            handleVariantChange(index, 'discount', e.target.value)
+          }
+        />
+      </div>
+
+      <div style={{ flex: 1.5 }}>
+        <input
+          type="number"
+          placeholder="Qty"
+          className="form-input"
+          style={{ margin: 0 }}
+          value={variant.stock}
+          onChange={(e) =>
+            handleVariantChange(index, 'stock', e.target.value)
+          }
+        />
+      </div>
+
+      {variants.length > 1 && (
+        <button
+          type="button"
+          onClick={() => removeVariant(index)}
+          style={{
+            border: 'none',
+            background: '#fee2e2',
+            color: '#ef4444',
+            padding: '10px',
+            borderRadius: '4px'
+          }}
+        >
+          <FaTrash />
+        </button>
+      )}
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={addVariant}
+    className="btn-outline"
+    style={{ marginTop: '5px', fontSize: '0.85rem' }}
+  >
+    <FaPlus style={{ marginRight: '5px' }} /> Add Size
+  </button>
+</div>
 
         {/* --- IMAGE UPLOADER --- */}
         <div className="form-group" style={{background:'#fcfcfc', border:'2px dashed #e2e8f0', borderRadius:'8px', padding:'20px', textAlign:'center'}}>

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { FaShoppingCart, FaStar, FaHeart, FaRegHeart, FaShareAlt, FaUserFriends, FaImage } from 'react-icons/fa';
-import { useCart } from '../../context/CartContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaEye, FaStar, FaHeart, FaRegHeart, FaShareAlt, FaUserFriends, FaImage } from 'react-icons/fa';
 import { useWishlist } from '../../context/WishlistContext';
 import { useToast } from '../../context/ToastContext';
 
@@ -64,68 +63,66 @@ const styles = {
 };
 
 const ProductCard = ({ product }) => {
-  const { addToCart } = useCart();
+  const navigate = useNavigate();
   const { toggleWishlist, isInWishlist } = useWishlist(); 
   const toast = useToast();
   
-  // Destructure
   const { 
     id, name, image_url, category, featured, description, 
     averageRating = 0, totalReviews = 0, sold_count = 0,
     variants = [] 
   } = product;
 
-  // --- PRICE LOGIC: Get lowest effective price & detect discounts ---
+  // --- PRICE LOGIC (Display Only) ---
   let displayPrice = Number(product.price);
   let originalPrice = null;
   let maxDiscount = 0;
 
   if (variants && variants.length > 0) {
-    // Calculate effective price for each variant to find best deal/entry price
     const computed = variants.map(v => {
-      const price = Number(v.price);
-      const discount = Number(v.discount || 0);
-      const effective = Math.round(price - (price * discount / 100));
-      return { effective, original: price, discount };
+      const p = Number(v.price);
+      const d = Number(v.discount || 0);
+      const effective = Math.round(p - (p * d / 100));
+      return { effective, original: p, discount: d, stock: Number(v.stock) };
     });
 
-    // Use lowest price
     const bestOption = computed.reduce((prev, curr) => curr.effective < prev.effective ? curr : prev);
-    
     displayPrice = bestOption.effective;
+    
     if (bestOption.discount > 0) {
       originalPrice = Math.round(bestOption.original);
       maxDiscount = bestOption.discount;
     }
   }
 
-  const isMulti = variants && variants.length > 1;
+  // --- STOCK LOGIC ---
+  const totalAvailableStock = variants && variants.length > 0 
+    ? variants.reduce((sum, v) => sum + Number(v.stock), 0)
+    : Number(product.stock_quantity || 0);
 
-  // Handlers
+  const isOutOfStock = totalAvailableStock <= 0;
+
+  // --- ACTIONS ---
+  
   const handleImageError = (e) => {
     e.target.src = PLACEHOLDER_IMG; 
-    e.target.style.objectFit = 'contain';
     e.target.style.padding = '20px';
   };
 
-  const handleAddToCart = () => {
-    // Basic Add to Cart.
-    // NOTE: For multi-variant products, clicking card body -> Details Page is better flow.
-    addToCart(product);
-    toast.success(`Added ${name} to cart`);
+  // CHANGE: Redirects to details page instead of adding to cart
+  const handleViewProduct = () => {
+    navigate(`/product/${id}`);
   };
 
   const handleWishlist = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     toggleWishlist(product);
     if (!isInWishlist(id)) toast.info("Added to Wishlist");
     else toast.warning("Removed from Wishlist");
   };
 
   const handleShare = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     const shareUrl = `${window.location.origin}/product/${id}`;
     if (navigator.share) {
       try { await navigator.share({ title: name, url: shareUrl }); } catch (e){}
@@ -140,24 +137,22 @@ const ProductCard = ({ product }) => {
   return (
     <div className="product-card" style={styles.card}>
       
-      {/* 1. BADGES (SALE vs TRENDING) */}
-      {maxDiscount > 0 ? (
-        <span style={{ 
-          position: 'absolute', top: '12px', left: '12px', background: '#ef4444', color: 'white', 
-          padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', zIndex: 2 
-        }}>
+      {/* BADGES */}
+      {isOutOfStock ? (
+         <span style={{ position: 'absolute', top: '12px', left: '12px', background: '#94a3b8', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', zIndex: 2 }}>
+            Out of Stock
+         </span>
+      ) : maxDiscount > 0 ? (
+        <span style={{ position: 'absolute', top: '12px', left: '12px', background: '#ef4444', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', zIndex: 2 }}>
           {maxDiscount}% OFF
         </span>
-      ) : (featured && (
-        <span style={{ 
-          position: 'absolute', top: '12px', left: '12px', background: 'var(--primary-color)', color: 'white', 
-          padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', zIndex: 2 
-        }}>
+      ) : featured && (
+        <span style={{ position: 'absolute', top: '12px', left: '12px', background: 'var(--primary-color)', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold', zIndex: 2 }}>
           Trending
         </span>
-      ))}
+      )}
       
-      {/* 2. ACTIONS */}
+      {/* FLOAT BUTTONS */}
       <button style={{ ...styles.floatBtn, top: '12px' }} onClick={handleWishlist}>
         {isLiked ? <FaHeart color="#ef4444" /> : <FaRegHeart />}
       </button>
@@ -166,91 +161,68 @@ const ProductCard = ({ product }) => {
         <FaShareAlt />
       </button>
 
-      {/* 3. IMAGE */}
+      {/* IMAGE (Clicking image also goes to details) */}
       <Link to={`/product/${id}`} style={{textDecoration:'none', color:'inherit', flexGrow: 0}}>
         <div style={styles.imageContainer} className="card-zoom">
-          {image_url ? (
-            <img 
-              src={image_url} 
-              alt={name} 
-              style={styles.img} 
-              onError={handleImageError} 
-            />
-          ) : (
-            <FaImage size={40} color="#cbd5e1" />
-          )}
+          <img src={image_url || PLACEHOLDER_IMG} alt={name} style={styles.img} onError={handleImageError} />
           
+          {/* UPDATED: Show count if > 0 (previously > 5) */}
           {sold_count > 0 && (
-            <div className="sold-badge" style={{
-              position: 'absolute', bottom: '0', left: '0', right: '0',
-              background: 'rgba(0,0,0,0.7)', color: 'white',
-              fontSize: '0.75rem', padding: '6px 15px', backdropFilter: 'blur(4px)',
-              display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '500'
-            }}>
-               <FaUserFriends /> {sold_count} sold
+            <div className="sold-badge" style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(0,0,0,0.7)', color: 'white', fontSize: '0.75rem', padding: '6px 15px', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '500' }}>
+               <FaUserFriends /> {sold_count} bought this
             </div>
           )}
         </div>
       </Link>
 
-      {/* 4. DETAILS */}
+      {/* INFO */}
       <div style={styles.details} className="card-details">
         <small style={{ color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.65rem' }}>
           {category || 'General'}
         </small>
         
         <Link to={`/product/${id}`} style={{textDecoration:'none', color:'inherit'}}>
-          <h3 className="card-title" style={{ margin: '2px 0 5px 0', fontSize: '1.1rem', fontWeight: 600, color: '#1f2937' }}>
-            {name}
-          </h3>
+          <h3 className="card-title" style={{ margin: '2px 0 5px 0', fontSize: '1.1rem', fontWeight: 600, color: '#1f2937' }}>{name}</h3>
         </Link>
         
-        {/* Rating */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom:'5px' }}>
             <div style={{ display: 'flex', color: '#f59e0b', fontSize: '0.8rem' }}>
-              {[...Array(5)].map((_, i) => (
-                <FaStar key={i} style={{ opacity: i < Math.round(averageRating) ? 1 : 0.3 }} />
-              ))}
+              {[...Array(5)].map((_, i) => <FaStar key={i} style={{ opacity: i < Math.round(averageRating) ? 1 : 0.3 }} />)}
             </div>
-            {totalReviews > 0 && (
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>({totalReviews})</span>
-            )}
+            {totalReviews > 0 && <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>({totalReviews})</span>}
         </div>
 
         <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5', flexGrow: 1, margin: '5px 0' }}>
-          {description ? description.substring(0, 50) + (description.length>50?'...':'') : 'Verified Product.'}
+          {description ? description.substring(0, 45) + (description.length>45?'...':'') : 'Premium quality.'}
         </p>
 
-        {/* 5. FOOTER (PRICE & ADD BTN) */}
+        {/* PRICE & BUTTON */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #f3f4f6' }}>
+          
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            
-            {/* Old Price Strike */}
-            {originalPrice && (
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'line-through', lineHeight: 1 }}>
-                ₹{originalPrice}
-              </span>
-            )}
-
-            <span className="price-tag" style={{ fontSize: '1.25rem', fontWeight: '800', color: maxDiscount > 0 ? '#ef4444' : '#1f2937' }}>
-              ₹{displayPrice}
-            </span>
-            
-            {isMulti && (
-              <span style={{ fontSize:'0.65rem', color:'#64748b', fontWeight:'500', marginTop:'-2px' }}>
-                starts from
-              </span>
-            )}
+            {originalPrice && <span style={{ fontSize: '0.75rem', color: '#94a3b8', textDecoration: 'line-through', lineHeight: 1 }}>₹{originalPrice}</span>}
+            <span className="price-tag" style={{ fontSize: '1.25rem', fontWeight: '800', color: maxDiscount > 0 ? '#ef4444' : '#1f2937' }}>₹{displayPrice}</span>
           </div>
           
-          <button className="btn card-add-btn" onClick={handleAddToCart} 
+          {/* Button changed to "View" to prevent direct cart/stock errors */}
+          <button 
+            className="btn card-add-btn" 
+            onClick={handleViewProduct} 
+            disabled={isOutOfStock}
             style={{ 
-              padding: '8px 16px', fontSize: '0.9rem', 
-              background: 'var(--primary-color)', color: 'white', 
-              borderRadius: '8px', border: 'none', cursor: 'pointer',
+              padding: '8px 16px', fontSize: '0.85rem', 
+              background: isOutOfStock ? '#e2e8f0' : '#e0e7ff', 
+              color: isOutOfStock ? '#94a3b8' : 'var(--primary-color)',
+              borderRadius: '8px', border: isOutOfStock ? 'none' : '1px solid var(--primary-color)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '6px'
             }}>
-            <FaShoppingCart style={{ fontSize:'0.9rem' }}/> Add
+            
+            {isOutOfStock ? (
+                <span>No Stock</span>
+            ) : (
+                <><FaEye /> View</> 
+            )}
+
           </button>
         </div>
       </div>
@@ -258,19 +230,13 @@ const ProductCard = ({ product }) => {
       <style>{`
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .card-zoom:hover img { transform: scale(1.08); }
-        .card-add-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
-        .product-card button:not(.card-add-btn):hover { background-color: #f8fafc; }
-
+        .card-add-btn:hover:not(:disabled) { background: var(--primary-color) !important; color: white !important; }
+        
         @media (max-width: 480px) {
           .card-details { padding: 12px !important; }
           .card-title { font-size: 0.95rem !important; margin-bottom: 2px !important; }
           .price-tag { font-size: 1rem !important; }
-          .card-add-btn { 
-            padding: 6px 10px !important; 
-            font-size: 0.75rem !important; 
-            border-radius: 6px !important;
-          }
-          .card-add-btn svg { font-size: 0.75rem !important; }
+          .card-add-btn { padding: 6px 10px !important; font-size: 0.7rem !important; border-radius: 6px !important; }
           .imageContainer { height: 160px !important; }
           .sold-badge { font-size: 0.65rem !important; padding: 4px 8px !important; }
         }

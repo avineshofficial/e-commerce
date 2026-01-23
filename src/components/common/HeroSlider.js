@@ -33,7 +33,7 @@ const HeroSlider = ({ onCategorySelect }) => {
     if (slides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrent(curr => (curr === slides.length - 1 ? 0 : curr + 1));
-    }, 6000);
+    }, 4000);
     return () => clearInterval(timer);
   }, [slides.length]);
 
